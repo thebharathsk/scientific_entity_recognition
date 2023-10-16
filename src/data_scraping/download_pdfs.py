@@ -32,7 +32,7 @@ def get_pdfs(input_path:str, output_path:str):
         #read url link and #download pdf
         try:
             #open url link
-            response = requests.get(url+'.pdf', timeout=2)
+            response = requests.get(url+'.pdf', timeout=0.5)
             with open(save_path, 'wb') as pdf_file:
                 pdf_file.write(response.content)
         except:
