@@ -2,7 +2,7 @@
 data
 
 #grobid
-src/data_scraping/grobid-0.6.2
+src/data_processing/grobid-0.6.2
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
