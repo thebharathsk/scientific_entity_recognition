@@ -27,7 +27,7 @@ def tokenize_data(input_path:str, output_path:str):
         
     #iterate through text files
     for text_file in tqdm(text_files):
-        #open json file
+        #open text file
         with open(text_file, 'r') as fp_input:
             #dump text to file
             save_file_name = os.path.basename(text_file)        
