@@ -38,9 +38,9 @@ if __name__ == "__main__":
     #parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_path",  type=str, required=True, help="path to pdf files")
-    parser.add_argument("--output_path",  type=str, required=True, help="path to store output pdfs")
+    parser.add_argument("--output_path",  type=str, required=True, help="path to store output jsons")
     
     args = parser.parse_args()
     
-    #download pdfs from metadata csv file
+    #parse pdfs into jsons
     parse_pdf_data(args.input_path, args.output_path)

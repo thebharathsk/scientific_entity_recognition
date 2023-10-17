@@ -3,8 +3,6 @@ import hashlib
 import argparse
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 from tqdm import tqdm
 
 def get_pdfs(input_path:str, output_path:str):
