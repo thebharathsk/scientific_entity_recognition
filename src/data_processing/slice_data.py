@@ -2,6 +2,7 @@ import os
 import argparse
 import pandas as pd
 from tqdm import tqdm
+import shutil
 
 def is_correct_conference(venues:str):
     """Check if the conference is correct
@@ -31,6 +32,22 @@ def split_data(input_file:str,
         token_path: Path to tokenized data
         num_manual: Number of manually annotated data 
     """
+    #create folders for each data slice
+    ashwin_path = os.path.join(output_path, "manually_annotated", "ashwin")
+    bharath_path = os.path.join(output_path, "manually_annotated", "bharath")
+    odemuno_path = os.path.join(output_path, "manually_annotated", "odemuno")
+    
+    os.makedirs(os.path.join(ashwin_path, "input"), exist_ok=True)
+    os.makedirs(os.path.join(ashwin_path, "annotations"), exist_ok=True)
+    os.makedirs(os.path.join(bharath_path, "input"), exist_ok=True)
+    os.makedirs(os.path.join(bharath_path, "annotations"), exist_ok=True)
+    os.makedirs(os.path.join(odemuno_path, "input"), exist_ok=True)
+    os.makedirs(os.path.join(odemuno_path, "annotations"), exist_ok=True)
+    
+    os.makedirs(os.path.join(output_path, "auto_annotated", 
+                             "annotations"), exist_ok=True)
+    os.makedirs(os.path.join(output_path, "unannotated", 
+                             "annotations"), exist_ok=True)
     
     #load csv file
     df = pd.read_csv(input_file)
@@ -54,6 +71,10 @@ def split_data(input_file:str,
         year = row["year"]
         path = os.path.join(token_path, row["hash"] + ".txt")
         
+        #check if tokenized data exists
+        if not os.path.exists(path):
+            continue
+        
         #create a dictionary with data
         data = {"title": title, "venues": venues, "year": year, "path": path}
         
@@ -70,17 +91,6 @@ def split_data(input_file:str,
         else:
             unannotated.append(data)
     
-    #create folders for each data slice
-    os.makedirs(os.path.join(output_path, "manually_annotated", 
-                             "ashwin", "annotations"), exist_ok=True)
-    os.makedirs(os.path.join(output_path, "manually_annotated", 
-                             "bharath", "annotations"), exist_ok=True)
-    os.makedirs(os.path.join(output_path, "manually_annotated", 
-                             "odemuno", "annotations"), exist_ok=True)
-    os.makedirs(os.path.join(output_path, "auto_annotated", 
-                             "annotations"), exist_ok=True)
-    os.makedirs(os.path.join(output_path, "unannotated", 
-                             "annotations"), exist_ok=True)
 
     #print number of data in each slice
     print("Number of manually annotated data:", len(manually_annotated))
@@ -106,6 +116,15 @@ def split_data(input_file:str,
                                                     "odemuno", "task.csv"), index=True)
     auto_annotated.to_csv(os.path.join(output_path, "auto_annotated", "task.csv"),index=True)
     unannotated.to_csv(os.path.join(output_path, "unannotated", "task.csv"), index=True)
+    
+    #copy tokenized data to respective folders
+    print('Copying input files to respective folders')
+    for index, row in tqdm(manually_annotated_ashwin.iterrows(), total=manually_annotated_ashwin.shape[0]):
+        shutil.copy(row["path"], os.path.join(ashwin_path, "input", os.path.basename(row["path"])))
+    for index, row in tqdm(manually_annotated_bharath.iterrows(), total=manually_annotated_bharath.shape[0]):
+        shutil.copy(row["path"], os.path.join(bharath_path, "input", os.path.basename(row["path"])))
+    for index, row in tqdm(manually_annotated_odemuno.iterrows(), total=manually_annotated_odemuno.shape[0]):
+        shutil.copy(row["path"], os.path.join(odemuno_path, "input", os.path.basename(row["path"])))
     
 if __name__ == "__main__":
     #parse arguments
