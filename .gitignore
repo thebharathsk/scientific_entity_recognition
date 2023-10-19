@@ -1,6 +1,9 @@
 #dataset
 data
 
+#results
+results
+
 #grobid
 src/data_processing/grobid-0.6.2
 # Byte-compiled / optimized / DLL files
