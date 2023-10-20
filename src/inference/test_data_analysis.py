@@ -18,7 +18,7 @@ def analyze_test_data(input_path:str, output_path:str):
     df = pd.read_csv(input_path)
     
     #read "input" column into a list
-    input_list = df["input"].tolist()
+    input_list = df["input"].tolist()[1:]
     
     #analyze distribution of input lengths
     input_lengths = []
@@ -43,18 +43,14 @@ def analyze_test_data(input_path:str, output_path:str):
     print("median: ", np.median(input_lengths))
     print("std: ", np.std(input_lengths))    
 
-    #print 10 random inputs
-    print('10 random inputs:')
-    start_indices = np.random.randint(0, len(split_indices), size=10)
-    end_indices = start_indices + 1
-    for (s,e) in zip(start_indices, end_indices):
-        s_ = split_indices[s]
-        e_ = split_indices[e]
-        print('Size = ', e_-s_+1)
-        print(' '.join(input_list[s_+1:e_]))
-        print('')
-    
-    
+    #print inputs to a text file
+    with open(output_path + "/inputs.txt", "w") as f:
+        for i in range(len(split_indices)-1):
+            s_ = split_indices[i]
+            e_ = split_indices[i+1]
+            input_data = ' '.join(input_list[s_+1:e_]) + '\n\n'
+            f.write(input_data)
+            
 if __name__ == "__main__":
     #parse arguments
     parser = argparse.ArgumentParser()
