@@ -107,7 +107,7 @@ def tokenize_data(examples:dict, tokenizer: AutoTokenizer, label_encoding_dict: 
     tokenized_inputs = tokenizer(examples['tokens'], truncation=True, is_split_into_words=True)
     
     #if data is unlabeled, return tokenized inputs
-    if 'ner_tags' not in examples:
+    if 'ner_tags' not in examples.keys():
         return tokenized_inputs
     
     #align labels with tokenized inputs

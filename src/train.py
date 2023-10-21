@@ -68,7 +68,7 @@ def train(args):
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         num_train_epochs=args.num_epochs,
-        weight_decay=1e-5,
+        weight_decay=1e-5
     )
 
     #define trainer
@@ -93,7 +93,7 @@ def train(args):
         eval_dataset=val_dataloader_tokenized,
         data_collator=data_collator,
         tokenizer=tokenizer,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     parser.add_argument('--data', type=str, required=True, help='path to annotated data file for training')
     parser.add_argument('--model', type=str, required=False, default='dslim/bert-large-NER', help='model name')
     parser.add_argument('--batch_size', type=int, required=False, default=16, help='batch size')
-    parser.add_argument('--learning_rate', type=float, required=False, default=3, help='number of training epochs')
-    parser.add_argument('--num_epochs', type=int, required=False, default=1e-4, help='learning rate')
+    parser.add_argument('--learning_rate', type=float, required=False, default=1e-4, help='number of training epochs')
+    parser.add_argument('--num_epochs', type=int, required=False, default=3, help='learning rate')
     parser.add_argument('--data_split', type=float, required=False, default=0.8, help='train/val split ratio')
     parser.add_argument('--exp_path', type=str, required=False, default='../exps', help='path to save trained model')
     parser.add_argument('--exp_name', type=str, required=False, default='un-ner.model', help='name of experiment')
