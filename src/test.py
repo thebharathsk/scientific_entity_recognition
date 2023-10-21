@@ -75,15 +75,21 @@ def test(args):
             count += 1
             outputs.append({'id':count, 'target': label_list[prediction_w_id_mode]})
         
+        #if input exceeds token number limit, add 'O' label to other words
+        if len(word_ids) > len(test_data[i]):
+            diff = len(word_ids) - len(test_data[i])
+            for _ in range(diff):
+                count += 1
+                outputs.append({'id':count, 'target': label_list[0]})
+            
         #add empty target at the end of an input except for last input
         if i != len(test_dataloader_tokenized) - 1: 
             count += 1
-            outputs.append({'id':count, 'target': ''})
+            outputs.append({'id':count, 'target': 'X'})
     
     #save outputs as csv file
     df = pd.DataFrame(outputs)
-    df.to_csv(os.path.join(args.exp_path, 'test_outputs.csv'), index=False)
-    
+    df.to_csv(os.path.join(args.exp_path, args.exp_name, 'test_outputs.csv'), index=False)
     
 
 if __name__ == "__main__":
