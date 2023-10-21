@@ -66,7 +66,7 @@ def test(args):
         predictions = predictions.detach().cpu().numpy()[1:-1]
         
         #iterate through word ids and predictions
-        word_ids_unique = np.unique(word_ids)
+        word_ids_unique = np.sort(np.unique(word_ids))
         for w_id in word_ids_unique:
             #find most common prediction for word id
             prediction_w_id = predictions[word_ids == w_id]
@@ -76,8 +76,8 @@ def test(args):
             outputs.append({'id':count, 'target': label_list[prediction_w_id_mode]})
         
         #if input exceeds token number limit, add 'O' label to other words
-        if len(word_ids) > len(test_data[i]):
-            diff = len(word_ids) - len(test_data[i])
+        if  len(test_data[i]) > len(word_ids_unique):
+            diff = len(test_data[i]) - len(word_ids_unique)
             for _ in range(diff):
                 count += 1
                 outputs.append({'id':count, 'target': label_list[0]})
