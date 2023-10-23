@@ -16,6 +16,7 @@ def train(args):
         args: arguments for training process
     """
     ##STEP-1: Load data
+    
     #list of labels
     label_list = ['O',
                 'B-MethodName',
@@ -75,7 +76,6 @@ def train(args):
     data_collator = DataCollatorForTokenClassification(tokenizer)
     metric = load_metric("seqeval")
 
-
     def compute_metrics(p):
         predictions, labels = p
         predictions = np.argmax(predictions, axis=2)
@@ -84,8 +84,11 @@ def train(args):
         true_labels = [[label_list[l] for (p, l) in zip(prediction, label) if l != -100] for prediction, label in zip(predictions, labels)]
 
         results = metric.compute(predictions=true_predictions, references=true_labels)
-        return {"precision": results["overall_precision"], "recall": results["overall_recall"], "f1": results["overall_f1"], "accuracy": results["overall_accuracy"]}
-        
+        results_dict =  {"precision": results["overall_precision"], "recall": results["overall_recall"], "f1": results["overall_f1"], "accuracy": results["overall_accuracy"]}
+            
+        return results_dict
+    
+    #set training params
     trainer = Trainer(
         model,
         train_args,
@@ -96,10 +99,11 @@ def train(args):
         compute_metrics=compute_metrics,
     )
 
+    #train model
     trainer.train()
     trainer.evaluate()
     trainer.save_model(os.path.join(args.exp_path, args.exp_name))
-
+    
 if __name__ == "__main__":
     #parse arguments
     parser = argparse.ArgumentParser()
