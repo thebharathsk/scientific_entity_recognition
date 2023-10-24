@@ -1,5 +1,6 @@
 import os
 import argparse
+import comet_ml
 import pandas as pd
 import numpy as np
 from datasets import Dataset
@@ -16,6 +17,8 @@ def train(args):
         args: arguments for training process
     """
     ##STEP-1: Load data
+    #initialize logger
+    comet_ml.init(project_name='anlp/hw2/')
     
     #list of labels
     label_list = ['O',

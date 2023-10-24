@@ -89,7 +89,8 @@ def test(args):
     
     #save outputs as csv file
     df = pd.DataFrame(outputs)
-    df.to_csv(os.path.join(args.exp_path, args.exp_name, 'test_outputs.csv'), index=False)
+    df.to_csv(os.path.join(args.exp_path, args.exp_name, 
+                           os.path.basename(args.test_data).split('.')[0] + '_outputs.csv'), index=False)
     
 
 if __name__ == "__main__":
