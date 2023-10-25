@@ -15,6 +15,7 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer_callback import TrainerCallback
 from transformers.trainer_utils import EvalPrediction
+from transformers import set_seed
 from utils.utils import load_labeled_conll_data, tokenize_data
 
 #global variables
@@ -102,7 +103,7 @@ class SciNERTrainer(Trainer):
         outputs = model(**inputs)
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
-        loss_fct = nn.CrossEntropyLoss(weight=self.class_weights_t.to(model.module.device))
+        loss_fct = nn.CrossEntropyLoss()#weight=self.class_weights_t.to(model.module.device))
         loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
         return (loss, outputs) if return_outputs else loss
 
@@ -113,8 +114,7 @@ def train(args):
     """
     ##STEP-1: Load data
     #initialize logger
-    if not args.no_log:
-        comet_ml.init(project_name='anlp/hw2/')
+    comet_ml.init(project_name='anlp/hw2/', experiment_name=args.exp_name, disabled=args.no_log)
 
     #load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model)
@@ -138,7 +138,7 @@ def train(args):
     
     ##STEP-3: Train and evaluate
     #define model
-    model = AutoModelForTokenClassification.from_pretrained(args.model)
+    model = AutoModelForTokenClassification.from_pretrained(args.model)#, num_labels=len(LABEL_LIST))
     
     #modify model
     model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
@@ -154,13 +154,10 @@ def train(args):
         per_device_eval_batch_size=args.batch_size,
         num_train_epochs=args.num_epochs,
         weight_decay=1e-5
-    )
+        )
 
     #define trainer
     data_collator = DataCollatorForTokenClassification(tokenizer)
-    
-    #define metric
-    metric = load_metric("seqeval")
     
     #set training params
     trainer = SciNERTrainer(
@@ -180,6 +177,9 @@ def train(args):
     trainer.save_model(os.path.join(args.exp_path, args.exp_name))
     
 if __name__ == "__main__":
+    #set random seed
+    set_seed(2701996)
+    
     #parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, required=True, help='path to annotated data file for training')
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_split', type=float, required=False, default=0.8, help='train/val split ratio')
     parser.add_argument('--exp_path', type=str, required=False, default='../exps', help='path to save trained model')
     parser.add_argument('--exp_name', type=str, required=False, default='un-ner.model', help='name of experiment')
-    parser.add_argument('--no_log', action='store_true', help='log experiment to comet.ml')
+    parser.add_argument('--no_log', action='store_true', help='dont log experiment to comet.ml')
     args = parser.parse_args()
     
     #train NER model
