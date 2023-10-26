@@ -6,4 +6,4 @@ Muno =>
 Contributions
 Ashwin =>
 Bharath =>
-Muno => setting up the labeling interface, creating a guide to annotate to encourage standardization, annotated 10 papers to be used for the model
+Muno => mostly annotations. setting up the labeling interface, creating a guide to annotate to encourage standardization, annotated 10 papers to be used for the model, wrote the introduction, data collection, and data annotation section of the report
