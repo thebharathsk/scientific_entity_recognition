@@ -1,3 +1,9 @@
-a
-b
-c
+Name => Lines of train.conll annotated
+Ashwin =>
+Bharath =>
+Muno =>
+
+Contributions
+Ashwin =>
+Bharath =>
+Muno => setting up the labeling interface, creating a guide to annotate to encourage standardization, annotated 10 papers to be used for the model
