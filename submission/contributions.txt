@@ -1,9 +1,9 @@
-Name => Paragraphs/lines annotated
-Ashwin => 1-1000
-Bharath => 1001-2000
-Odemuno => 2001-3000
+Name => Lines of train.conll annotated
+Ashwin =>
+Bharath =>
+Muno =>
 
 Contributions
-Ashwin
-Bharath
-Odeumon
+Ashwin =>
+Bharath =>
+Muno => setting up the labeling interface, creating a guide to annotate to encourage standardization, annotated 10 papers to be used for the model
