@@ -189,3 +189,42 @@ def get_word_ids(examples:dict, tokenizer: AutoTokenizer):
         word_ids.append(tokenized_inputs.word_ids(batch_index=i))
 
     return word_ids
+
+def find_next_label_schematic(prediction_w_logits, prev_label, label_to_id):
+    """Find next label based on label schema
+
+    Args:
+        prediction_w_logits: predictions for a word
+        prev_label: previous label index
+        label_to_id: label to id mapping dictionary
+    """
+    o_id = label_to_id['O']
+    b_ids = [v for k, v in label_to_id.items() if k[0] == 'B']
+    i_ids = [v for k, v in label_to_id.items() if k[0] == 'I']
+    amb_id = label_to_id['Ambiguous'] if 'Ambiguous' in label_to_id.keys() else None
+    
+    #if previous label is None or 'O'
+    if prev_label is None or prev_label == o_id:
+        valid_labels = [0]
+        valid_labels.extend(b_ids)
+    
+    #if previous label is 'B-'
+    elif prev_label in b_ids:
+        valid_labels = [0, prev_label+1]
+    
+    #if previous label is 'I-'
+    elif prev_label in i_ids:
+        valid_labels = [0, prev_label]
+        valid_labels.extend(b_ids)
+    
+    #if previous label is 'Ambiguous'
+    elif amb_id is not None and prev_label == amb_id:
+        valid_labels = [0]
+        valid_labels.extend(b_ids)
+        valid_labels.extend(i_ids)
+    
+    valid_labels = np.array(valid_labels)
+    predictions_w_id = np.argmax(prediction_w_logits[:,valid_labels], axis=1)
+    predictions_w_id_mapped = valid_labels[predictions_w_id]
+    predicitons_w_mode = np.bincount(predictions_w_id_mapped).argmax()
+    return predicitons_w_mode

@@ -122,6 +122,15 @@ def train(args):
     #get labeled train/val and unlabeled test data
     all_data = load_labeled_conll_data(args.data)
     
+    #shuffle data
+    all_data = list(zip(all_data[0], all_data[1]))
+    np.random.shuffle(all_data)
+    all_data = list(zip(*all_data))
+    
+    #limit data size
+    if args.data_size is not None:
+        all_data = all_data[0][:args.data_size], all_data[1][:args.data_size]
+    
     #split train/val data
     num_train = int(len(all_data[0]) * args.data_split)
     train_data = all_data[0][:num_train], all_data[1][:num_train]
@@ -138,12 +147,12 @@ def train(args):
     
     ##STEP-3: Train and evaluate
     #define model
-    model = AutoModelForTokenClassification.from_pretrained(args.model)#, num_labels=len(LABEL_LIST))
+    model = AutoModelForTokenClassification.from_pretrained(args.model, num_labels=len(LABEL_LIST))
     
-    #modify model
-    model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
-    model.num_labels = len(LABEL_LIST)
-    model.config.num_labels = len(LABEL_LIST)
+    # #modify model
+    # model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
+    # model.num_labels = len(LABEL_LIST)
+    # model.config.num_labels = len(LABEL_LIST)
     
     #define training arguments
     train_args = TrainingArguments(
@@ -179,6 +188,7 @@ def train(args):
 if __name__ == "__main__":
     #set random seed
     set_seed(2701996)
+    np.random.seed(2701996)
     
     #parse arguments
     parser = argparse.ArgumentParser()
@@ -188,6 +198,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, required=False, default=8, help='batch size')
     parser.add_argument('--learning_rate', type=float, required=False, default=1e-4, help='number of training epochs')
     parser.add_argument('--num_epochs', type=int, required=False, default=10, help='learning rate')
+    parser.add_argument('--data_size', type=int, required=False, default=None, help='number of data points to use in training+evaluation process')
     parser.add_argument('--data_split', type=float, required=False, default=0.8, help='train/val split ratio')
     parser.add_argument('--exp_path', type=str, required=False, default='../exps', help='path to save trained model')
     parser.add_argument('--exp_name', type=str, required=False, default='un-ner.model', help='name of experiment')

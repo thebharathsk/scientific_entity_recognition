@@ -11,7 +11,7 @@ from transformers import AutoModelForTokenClassification
 #load utils
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from utils.utils import load_task_data, tokenize_data, get_word_ids
+from utils.utils import load_task_data, tokenize_data, get_word_ids, find_next_label_schematic
 
 def test(args):
     """Test NER model
@@ -63,7 +63,7 @@ def test(args):
         #predict labels
         predictions = model.forward(input_ids=token_ids, attention_mask=attention_mask)
         predictions_prob = torch.softmax(predictions.logits.squeeze(), dim=1)
-        predictions = torch.argmax(predictions.logits.squeeze(), axis=1)
+        predictions = predictions.logits.squeeze()
         
         #convert predictions from tokens to word space
         #convert word ids and predictions to numpy array
@@ -73,17 +73,23 @@ def test(args):
         
         #iterate through word ids and predictions
         word_ids_unique = np.sort(np.unique(word_ids))
+        
+        #keep track of previous label
+        prev_label = None
         for w_id in word_ids_unique:
             #find most common prediction for word id
-            prediction_w_id = predictions[word_ids == w_id]
+            prediction_w_logits = predictions[word_ids == w_id]
             prediction_prob_w_id = predictions_prob[word_ids == w_id]
-            prediction_w_id_mode = np.bincount(prediction_w_id).argmax()
-            collective_probability = np.prod(prediction_prob_w_id[:,prediction_w_id_mode])
+            prediction_w_id = find_next_label_schematic(prediction_w_logits, prev_label, label_to_id)
+
+            collective_probability = np.prod(prediction_prob_w_id[:,prediction_w_id])
             
             if collective_probability > args.threshold:
-                outputs.append(f'{test_data[i][w_id]} -X- _ {label_list[prediction_w_id_mode]}\n')
+                outputs.append(f'{test_data[i][w_id]} -X- _ {label_list[prediction_w_id]}\n')
+                prev_label = prediction_w_id
             else:
                 outputs.append(f'{test_data[i][w_id]} -X- _ {label_list[-1]}\n')
+                prev_label = len(label_list) - 1
  
         #if input exceeds token number limit, add 'O' label to other words
         if  len(test_data[i]) > len(word_ids_unique):
@@ -96,7 +102,7 @@ def test(args):
             outputs.append('\n')
     
     #save outputs as conll file
-    with open(os.path.join(args.output_path, 'auto_annotations.conll'), 'w') as f:
+    with open(os.path.join(args.output_path, f'auto_annotations_{args.exp_name}.conll'), 'w') as f:
         f.writelines(outputs)
     
 if __name__ == "__main__":

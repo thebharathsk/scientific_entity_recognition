@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datasets import Dataset
 from transformers import AutoTokenizer
 from transformers import AutoModelForTokenClassification
-from utils.utils import load_unlabeled_conll_data, tokenize_data, get_word_ids
+from utils.utils import load_unlabeled_conll_data, tokenize_data, get_word_ids, find_next_label_schematic
 
 def test(args):
     """Test NER model
@@ -58,7 +58,7 @@ def test(args):
         
         #predict labels
         predictions = model.forward(input_ids=token_ids, attention_mask=attention_mask)
-        predictions = torch.argmax(predictions.logits.squeeze(), axis=1)
+        predictions = predictions.logits.squeeze()
         
         #convert predictions from tokens to word space
         #convert word ids and predictions to numpy array
@@ -67,13 +67,18 @@ def test(args):
         
         #iterate through word ids and predictions
         word_ids_unique = np.sort(np.unique(word_ids))
+        
+        #keep track of previous label
+        prev_label = None
         for w_id in word_ids_unique:
             #find most common prediction for word id
-            prediction_w_id = predictions[word_ids == w_id]
-            prediction_w_id_mode = np.bincount(prediction_w_id).argmax()
+            prediction_w_logits = predictions[word_ids == w_id]
+            prediction_w_id = find_next_label_schematic(prediction_w_logits, prev_label, label_to_id)
             
+            #update count and previous label
             count += 1
-            outputs.append({'id':count, 'target': label_list[prediction_w_id_mode]})
+            prev_label = prediction_w_id
+            outputs.append({'id':count, 'target': label_list[prediction_w_id]})
         
         #if input exceeds token number limit, add 'O' label to other words
         if  len(test_data[i]) > len(word_ids_unique):
