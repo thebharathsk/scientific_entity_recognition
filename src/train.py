@@ -17,6 +17,7 @@ from transformers.trainer_callback import TrainerCallback
 from transformers.trainer_utils import EvalPrediction
 from transformers import set_seed
 from utils.utils import load_labeled_conll_data, tokenize_data
+import torchinfo
 
 #global variables
 #list of labels
@@ -94,7 +95,7 @@ class SciNERTrainer(Trainer):
         #normalize class weights
         self.class_weights_t = (1 - beta) / (1 - beta ** self.class_weights_t)
         
-        print('Weights')
+        print('Loss Weights')
         print(self.class_weights_t)
          
     def compute_loss(self, model, inputs, return_outputs=False):
@@ -149,10 +150,17 @@ def train(args):
     #define model
     model = AutoModelForTokenClassification.from_pretrained(args.model, num_labels=len(LABEL_LIST))
     
-    # #modify model
-    # model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
-    # model.num_labels = len(LABEL_LIST)
-    # model.config.num_labels = len(LABEL_LIST)
+    # modify model (Add 2-layer classifier head)
+    model.classifier = nn.Sequential(
+        nn.Linear(model.classifier.in_features, 512),
+        nn.ReLU(),
+        nn.Dropout(0.3),
+        nn.Linear(512, len(LABEL_LIST)),
+    )
+    model.num_labels = len(LABEL_LIST)
+    model.config.num_labels = len(LABEL_LIST)
+
+    torchinfo.summary(model)
     
     #define training arguments
     train_args = TrainingArguments(
@@ -194,14 +202,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, required=True, help='path to annotated data file for training')
     parser.add_argument('--loss_weights', type=str, default='/home/bharathsk/acads/fall_2023/scientific_entity_recognition/results/training_data_analysis/label_counts.npz', required=False, help='path to dictionary class counts')
-    parser.add_argument('--model', type=str, required=False, default='dslim/bert-large-NER', help='model name')
+    parser.add_argument('--model', type=str, required=False, default='bert-large-uncased', help='model name')
     parser.add_argument('--batch_size', type=int, required=False, default=8, help='batch size')
     parser.add_argument('--learning_rate', type=float, required=False, default=1e-4, help='number of training epochs')
     parser.add_argument('--num_epochs', type=int, required=False, default=10, help='learning rate')
     parser.add_argument('--data_size', type=int, required=False, default=None, help='number of data points to use in training+evaluation process')
     parser.add_argument('--data_split', type=float, required=False, default=0.8, help='train/val split ratio')
     parser.add_argument('--exp_path', type=str, required=False, default='../exps', help='path to save trained model')
-    parser.add_argument('--exp_name', type=str, required=False, default='un-ner.model', help='name of experiment')
+    parser.add_argument('--exp_name', type=str, required=False, default='un-ner-2xhead.model', help='name of experiment')
     parser.add_argument('--no_log', action='store_true', help='dont log experiment to comet.ml')
     args = parser.parse_args()
     

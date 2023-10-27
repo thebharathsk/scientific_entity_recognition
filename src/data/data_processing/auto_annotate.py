@@ -7,6 +7,7 @@ from tqdm import tqdm
 from datasets import Dataset
 from transformers import AutoTokenizer
 from transformers import AutoModelForTokenClassification
+import torchinfo
 
 #load utils
 import sys
@@ -45,7 +46,10 @@ def test(args):
     tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     #load model
+    print("Model path = ", model_path)
     model = AutoModelForTokenClassification.from_pretrained(model_path)
+    torchinfo.summary(model)
+
     
     #load dataset
     test_data = load_task_data(args.input_path)
