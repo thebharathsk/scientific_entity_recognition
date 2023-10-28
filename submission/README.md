@@ -1,11 +1,8 @@
-# Scientific Entity Recognition
-
 To train the system, follow the steps below:
 
 1. Install dependencies
 
 ```
-cd src
 conda create -n sciner python=3.10
 conda activate sciner
 pip install -r requirements.txt

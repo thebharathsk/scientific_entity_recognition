@@ -1,0 +1,15 @@
+beautifulsoup4==4.12.2
+comet_ml==3.35.0
+datasets==2.14.5
+delft==0.3.3
+lmdb==1.4.1
+matplotlib==3.8.0
+nltk==3.8.1
+numpy==1.25.2
+pandas==2.1.2
+Requests==2.31.0
+scipdf==0.1.dev0
+spacy==3.5.4
+torch==2.0.1
+tqdm==4.66.1
+transformers==4.30.2

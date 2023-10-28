@@ -1,9 +1,12 @@
-Name => Lines of train.conll annotated
-Ashwin =>
-Bharath =>
-Muno =>
+1. Annotation contributions:
 
-Contributions
-Ashwin =>
-Bharath =>
+Since the annotations from each person have been split into train and test its difficult to specify the exact instances. Instead these numbers indicate total paragraphs annotated by each member across both train.conll and test.conll files
+Ashwin => 549
+Bharath => 741
+Muno => 252
+
+2. Overall Contributions:
+
+Ashwin => data annotations, data scrapping, extraction of data from pdfs, pre-processing and  training experimentation
+Bharath => data annotations, understanding huggingface transformers library, writing code for training, testing and auto-annotation
 Muno => mostly annotations. setting up the labeling interface, creating a guide to annotate to encourage standardization, annotated 10 papers to be used for the model, wrote the introduction, data collection, and data annotation section of the report

@@ -147,12 +147,12 @@ def train(args):
     
     ##STEP-3: Train and evaluate
     #define model
-    model = AutoModelForTokenClassification.from_pretrained(args.model, num_labels=len(LABEL_LIST))
+    model = AutoModelForTokenClassification.from_pretrained(args.model)#, num_labels=len(LABEL_LIST))
     
-    # #modify model
-    # model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
-    # model.num_labels = len(LABEL_LIST)
-    # model.config.num_labels = len(LABEL_LIST)
+    #modify model
+    model.classifier = nn.Linear(model.classifier.in_features, len(LABEL_LIST))
+    model.num_labels = len(LABEL_LIST)
+    model.config.num_labels = len(LABEL_LIST)
     
     #define training arguments
     train_args = TrainingArguments(
