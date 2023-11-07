@@ -5,11 +5,12 @@
 \documentclass[11pt]{article}
 
 % Remove the "review" option to generate the final version.
-\usepackage[]{latex/acl}
+\usepackage[]{acl}
 
 % Standard package includes
 \usepackage{times}
 \usepackage{latexsym}
+\usepackage{hyperref}
 
 % For proper rendering and hyphenation of words containing Latin characters (including in bib files)
 \usepackage[T1]{fontenc}
@@ -30,13 +31,20 @@
 % the typewriter font.
 \usepackage{inconsolata}
 
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tabularx}
+
+\usepackage{graphicx} % not in the template
+\usepackage{subcaption} % not in the template
+
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
 %\setlength\titlebox{<dim>}
 %
 % and set <dim> to something 5cm or larger.
 
-\title{Scientific Entity Recognition}
+\title{Iterative Auto Annotation for Scientific Named Entity Recognition}
 
 % Author information can be set in various styles:
 % For several authors from the same institution:
@@ -78,195 +86,218 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is a supplement to the general instructions for *ACL authors. It contains instructions for using the \LaTeX{} style files for ACL conferences. 
-The document itself conforms to its own specifications, and is therefore an example of what your manuscript should look like.
-These instructions should be used both for papers submitted for review and for final versions of accepted papers.
+In this work, we describe our approach to automatic annotation of unlabeled data and leveraging transfer learning for the Scientific Named Entity Recognition (SciNER) task. Due to the limitations of manual annotation of data, a major challenge in the task is using unlabeled data for training. In this paper, we describe how we gathered the raw data, converted raw data into tokens, annotated data manually, used automatic annotation to massively increase the size of data and used transfer learning to train our models. The auto-annotation process we introduced in this work significantly improves the performance of our model, increasing the F1 score on the hidden private test set from 0.412 to 0.541. Our code can be accessed at \hyperlink{github.com/thebharathsk/scientific_entity_recognition}{GitHub Repo}. 
 \end{abstract}
 
 \section{Introduction}
+Scientific Named Entity Recognition (SciNER), a fundamental task in natural language processing (NLP), is important for extracting structured information from scientific texts. The task involves identifying and categorizing specific entities such as method names, task names, dataset names, metric names and their values, hyperparameter names and their values within scientific publications in the NLP domain. Such a model can be used in applications such as automatic document parsing and document search and retrieval.
 
-These instructions are for authors submitting papers to *ACL conferences using \LaTeX. They are not self-contained. All authors must follow the general instructions for *ACL proceedings,\footnote{\url{http://acl-org.github.io/ACLPUB/formatting.html}} and this document contains additional instructions for the \LaTeX{} style files.
+One of the critical challenges in developing a robust scientific entity recognition system is the availability of annotated data. Gathering large-scale annotated data for NLP tasks can be labor-intensive and time-consuming. In this report, we focus on NLP papers from recent NLP conferences such as ACL, EMNLP, and NAACL, as these papers provide the relevant information for our task. However, manually annotating thousands of papers from these conferences is not practical. To address this challenge, we first annotate a small set of data manually and use models trained on the small dataset to auto-annotate the remaining unlabeled data. Further, we repeat the auto-annotation process multiple times to improve the quality of auto-annotated data.
 
-The templates include the \LaTeX{} source of this document (\texttt{acl.tex}),
-the \LaTeX{} style file used to format it (\texttt{acl.sty}),
-an ACL bibliography style (\texttt{acl\_natbib.bst}),
-an example bibliography (\texttt{custom.bib}),
-and the bibliography for the ACL Anthology (\texttt{anthology.bib}).
+To train our models, we use Hugging Face Transformers \href{https://huggingface.co/docs/transformers/index}{library}. We use the bert-large-cased variant of BERT family of encoder-only models to train our model on the trained dataset.
 
-\section{Data Annotation}
+The paper is organized as follows: Section \ref{sec:data_collection} describes the data collection process. Section \ref{sec:data_annotation} describes the annotation process. Section \ref{sec:model} describes the training of our model and auto-annotation of unlabeled data. Section \ref{sec:analysis} presents quantitative and qualitative analysis of models and Section \ref{sec:conclusion} concludes the paper.
 
-To produce a PDF file, pdf\LaTeX{} is strongly recommended (over original \LaTeX{} plus dvips+ps2pdf or dvipdf). Xe\LaTeX{} also produces PDF files, and is especially suitable for text in non-Latin scripts.
+\section{Data Collection}\label{sec:data_collection}
+%1. anthology.bib contains all the information regarding the files. read the data from it and convert it to csv.
+%2. downloading all the pdfs using the urls 
+%3. once we have the pdfs, we convert them to json using scipdf
 
-\section{Training}
+\begin{figure}[ht]
+    \begin{subfigure}{0.5\textwidth} % Adjust the width as needed
+        \centering
+        \includegraphics[width=1.0\textwidth]{images/anthology_bib.png}
+        \caption{anthology.bib}
+        \label{fig:anthologybib}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth} % Adjust the width as needed
+        \centering
+        \includegraphics[width=1.0\textwidth]{images/anthology_csv.png}
+        \caption{anthology.csv}
+        \label{fig:anthologycsv}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth} % Adjust the width as needed
+        \centering
+        \includegraphics[width=1.0\textwidth]{images/extracted_text.png}
+        \caption{extracted\_text.txt}
+        \label{fig:extractedtext}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth} % Adjust the width as needed
+        \centering
+        \includegraphics[width=1.0\textwidth]{images/extracted_tokens.png}
+        \caption{extracted\_tokens.txt}
+        \label{fig:extractedtokens}
+    \end{subfigure}
+    \label{fig:overall}
+\end{figure}
 
-The first line of the file must be
-\begin{quote}
-\begin{verbatim}
-\documentclass[11pt]{article}
-\end{verbatim}
-\end{quote}
+\subsection{PDF Parsing}
+We chose \hyperlink{https://aclanthology.org/}{ACL Anthology} as our data source as it currently hosts 88,586 papers on the study of computational linguistics and natural language processing. 
 
-To load the style file in the review version:
-\begin{quote}
-\begin{verbatim}
-\usepackage[review]{acl}
-\end{verbatim}
-\end{quote}
-For the final version, omit the \verb|review| option:
-\begin{quote}
-\begin{verbatim}
-\usepackage{acl}
-\end{verbatim}
-\end{quote}
+First, we use a Python script to parse the \href{https://aclanthology.org/anthology.bib.gz}{BibTeX file}downloaded from ACL Anthology website into a CSV file. Figure [\ref{fig:anthologybib}]) shows a snapshot of the information contained in the file. The CSV file has columns that contain the title of the paper, year of publication, venue information (specifically NAACL, ACL, and EMNLP) for each paper and the URLs to download the PDFs. We hash the URL of the paper using SHA256 standard to uniquely identify a paper. A snapshot of the CSV file \texttt{anthology.csv} can be seen in the figure [\ref{fig:anthologycsv}].
 
-To use Times Roman, put the following in the preamble:
-\begin{quote}
-\begin{verbatim}
-\usepackage{times}
-\end{verbatim}
-\end{quote}
-(Alternatives like txfonts or newtx are also acceptable.)
+After parsing the information about all the papers hosted on ACL Anthology, we create another script to automate the process of downloading PDF files from a list of URLs contained in the \texttt{anthology.csv} file. The hashes for URLs are used as file names for PDFs to ensure unique file names. We iterate through each row in CSV file to download and save PDFs. It is important to note that some of the PDFs failed to download, so we ended up downloading 87,587 (98.8\%) of the PDFs.
 
-Please see the \LaTeX{} source of this document for comments on other packages that may be useful.
+After the PDFs are downloaded, we convert them into JSON files using \href{https://github.com/titipata/scipdf_parser}{SciPDF}. We chose this library because it fits directly within our task for scientific publications. A snapshot of one such json file can be seen in the figure [\ref{fig:extractedtext}].
 
-Set the title and author using \verb|\title| and \verb|\author|. Within the author list, format multiple authors using \verb|\and| and \verb|\And| and \verb|\AND|; please see the \LaTeX{} source for examples.
+\subsection{Tokenizing}
+We use the \href{https://spacy.io}{spaCy} tokenizer from the "en\_core\_web\_lg" pre-trained model for the English language to tokenize our data. To speed up the tokenization process, we disable components in the spaCy pipeline such as "tok2vec," "tagger," "parser," "attribute\_ruler," "lemmatizer," and "ner,". The tokenizer iterates through each json file in the input directory and tokenizes paper titles, paragraphs and other relevant sections. The tokenized text is stored in text files with tokenized text for one paragraph stored in each line. A snapshot of tokenized text can be seen in figure [\ref{fig:extractedtokens}].
 
-By default, the box containing the title and author names is set to the minimum of 5 cm. If you need more space, include the following in the preamble:
-\begin{quote}
-\begin{verbatim}
-\setlength\titlebox{<dim>}
-\end{verbatim}
-\end{quote}
-where \verb|<dim>| is replaced with a length. Do not set this length smaller than 5 cm.
+To summarize, we begin with a bib file containing information about $88,586$ papers on ACL Anthology website and we extract tokenized data for all relevant paragraphs in $87,587$ of these papers. 
+\section{Data Annotation}\label{sec:data_annotation}
+\subsection{Methodology}
+% 300 -> 100 each, 10-15 papers training: 2 each for test
+% train on a small annotated set and then use that trained model to annotate the rest of the data
+% auto-annotated , more details in the model details section *1300manual annotations, 86k paragraphs/titles/etc.
+% only used the 35 from the 300
 
-\section{Evaluation}
+We organized the 87,587 papers into three distinct categories based on the papers' publication venue, publication year and the requirement for manual annotation. The categories are manually annotated, automatically annotated, and unannotated. Manually annotated data contains 35 papers ACL, EMNLP, or NAACL conferences published in 2022 or 2023 that we manually annotated. All the remaining papers from these three conferences published in 2022 and 23 belong to the auto-annotated category. The rest of the papers that do not meet the criteria of publication venue and publication year belong to the unannotated data category.
 
-\subsection{Footnotes}
+We split the 35 manually annotated papers among the three members and we set aside 2 papers from each person for our test set, so that it adheres to variances in our annotation styles. In total we annotated about 1542 paragraphs manually using the Label Studio interface.
 
-Footnotes are inserted with the \verb|\footnote| command.\footnote{This is a footnote.}
+We also make use of close to 86,000 paragraphs from the auto-annotated category described above in the following way: We first train a NER model using the small labeled dataset and use the trained model to label these 86,000 paragraphs automatically. More details on auto-annotation can be found in the Model Training and Evaluation section [sec \ref{sec:model}]. 
 
-\subsection{Tables and figures}
+% Our training data can be found here: XXX.
 
-See Table~\ref{tab:accents} for an example of a table and its caption.
-\textbf{Do not override the default caption sizes.}
 
-\begin{table}
-\centering
-\begin{tabular}{lc}
-\hline
-\textbf{Command} & \textbf{Output}\\
-\hline
-\verb|{\"a}| & {\"a} \\
-\verb|{\^e}| & {\^e} \\
-\verb|{\`i}| & {\`i} \\ 
-\verb|{\.I}| & {\.I} \\ 
-\verb|{\o}| & {\o} \\
-\verb|{\'u}| & {\'u}  \\ 
-\verb|{\aa}| & {\aa}  \\\hline
-\end{tabular}
-\begin{tabular}{lc}
-\hline
-\textbf{Command} & \textbf{Output}\\
-\hline
-\verb|{\c c}| & {\c c} \\ 
-\verb|{\u g}| & {\u g} \\ 
-\verb|{\l}| & {\l} \\ 
-\verb|{\~n}| & {\~n} \\ 
-\verb|{\H o}| & {\H o} \\ 
-\verb|{\v r}| & {\v r} \\ 
-\verb|{\ss}| & {\ss} \\
-\hline
-\end{tabular}
-\caption{Example commands for accented characters, to be used in, \emph{e.g.}, Bib\TeX{} entries.}
-\label{tab:accents}
+\subsection{Annotation Interface}
+We use the Label Studio interface to annotate our data. The labels in the configuration are shown in Fig. \ref{fig:interface}.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/interface.jpeg}
+    \caption{Labeling Interface}
+    \label{fig:interface}
+\end{figure}
+\subsection{Annotation Analysis}
+The Fig \ref{fig:overall} shows the number of labels of each kind. Label 'O' is omitted since an overwhelming number of labels belong to that class 'O'.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/manual_annotated_label.png}
+    \caption{Manually annotated label count}
+    \label{fig:overall}
+\end{figure}
+
+\section{Model Training and Evaluation}\label{sec:model}
+\subsection{Model Details}
+In our proposed system for the Scientific NER task, we use transfer learning to finetune pre-trained models with manually annotated data. This approach shifts the primary challenge for human annotators away from requiring large volumes of annotated data and towards creating small but high-quality annotations. This strategy is suitable given the limited number of annotators available (three) and the time constraints (a few hours per week). We hypothesize that providing a relatively small set of high-quality and consistent manual annotations would steer the pre-existing knowledge to generalize to a broader test dataset.
+
+In selecting a pre-trained model for this task, we consider a few important factors. The first factor is the amount of data the model is pre-trained on. We also consider two other factors: how easy it is to fine-tune the model to our specific manual annotation standard, and how well the NER task aligns with the pre-training objective. Due to these considerations, we decided not to explore decoder-only models like LLMs, as their generative nature leads to a different, prompting-based approach to fine-tuning that does not align naturally with the NER task. Instead, we focused on encoder-only models, evaluating the standard BERT \cite{Devlin2019BERTPO} model along with its derivatives such as DeBERTa \cite{He2020DeBERTaDB} and RoBERTa  \cite{Liu2019RoBERTaAR}. Based on the factors mentioned above, we selected the following pre-trained BERT variants available on HuggingFace: \texttt{dslim/bert-large-NER}, \texttt{bert-large-cased} and \texttt{roberta-large}.
+
+The \texttt{bert-large-NER} is a specialized version of the BERT model, tailored for Named Entity Recognition (NER) tasks. It's trained to identify four entity categories: location (LOC), organizations (ORG), person (PER), and Miscellaneous (MISC). This model evolved from the \texttt{bert-large-cased} model by fine-tuning it on the CoNLL-2003 English dataset \cite{connl2023}. On the other hand, \texttt{bert-large-cased} is the original, case-sensitive BERT model, trained using Masked Language Modeling (MLM) and Next Sentence Prediction(NSP) objectives. For both models, a single fully connected layer is added at the end, acting as a classification head to transform BERT embeddings into probabilistic predictions for 15 classes in the SciNER task. We also tried experimenting with RoBERTa (using \texttt{roberta-large} on HuggingFace) in place of BERT, coupled with a 2-layer fully-connected classification head. However, this would require substantial alterations to the codebase, particularly the rule-based labeling scheme mentioned ahead, and the modifications didn't lead to significantly improved results. We, therefore, did not explore using RoBERTa encoder in our model.
+
+\subsection{Training Process}
+As discussed previously, we use a model trained on a smaller manually annotated dataset to automatically annotate a larger dataset. This process of training on labeled data and using it to automatically annotate a larger dataset can be carried out in a loop to iteratively improve the quality of auto-annotated data. This process can be summarized in four steps as follows:
+\begin{enumerate}[noitemsep]
+    \item \textbf{Step-1}: Fine-tune the BERT-based model on manually annotated data.
+    \item \textbf{Step-2}: Use the fine-tuned model to generate automated annotations on the remaining corpus of scientific papers. Reject all annotations for which the model's confidence is less than a confidence threshold $\gamma$.
+    \item \textbf{Step-3}: Fine-tune the BERT model on a combination of manually and automatically annotated data.
+    \item \textbf{Step-4}: Repeat steps 1 through 3 multiple times.
+\end{enumerate}
+
+In step 1, we provide the model with manually annotated paragraphs from three contributors. This annotation was carried out on 35 papers from the ACL anthology. A paragraph from a candidate research paper was chosen for annotation only if it was clear and understandable, adhering to the defined entity classes, and that the annotator could easily grasp the overall content of the paper. This method aimed to minimize labeling inconsistencies and allowed the model to tackle ambiguous cases using its built-in knowledge. The model is trained for 20 epochs with a learning rate of $1\times10^{-4}$ and a batch size of 8 on two NVIDIA RTX 3090 GPUs.
+
+In step 2, we apply the model, now trained on manually annotated data, to annotate the labels for remaining ACL, EMNLP and NAACL papers from 2022-2023. We hypothesize that the model will reliably adhere to the manual annotation standard while working on unlabelled data. Since the predictions of the model are not always accurate, we use a confidence threshold to sift out uncertain annotations. Since BERT uses WordPiece tokenizer, we first aggregate class probabilities for each word by multiplying token-level probabilities. Once we have word-level class probabilities, we retain only those word-level predictions where the confidence ($p$) exceeds a confidence threshold of $\gamma = 0.98$. If not, the word is marked as ambiguous ($`amb'$).
+\begin{equation}
+    p(\text{c}|\text{word}) = \prod_{i = 1}^{N} p(\text{c}|\text{token}_{\text{word}}^i)
+\end{equation}
+where:\\
+$N$ = total number of tokens in the word\\
+$p(\text{c}|\text{token}_{\text{word}}^i)$ = probability that the token $t$ belongs to class c.\\
+
+\begin{equation}
+\text{label}(\text{word}) =
+\begin{cases} 
+    C & \text{if } \max_{c} p(\text{c}|\text{word}) \geq \gamma \\
+    `amb' & \text{otherwise}
+\end{cases}
+\end{equation}
+where:\\
+$C = \arg\max_{c} p(\text{c}|\text{word})$
+\newline
+
+In addition, we also use rule-based prediction to make our model predictions more accurate. For example, we know that a word with class '0' can only be followed by a word with classes 'O' or 'B-<class name>' but not 'I-<class name>'. Similarly, a word with class 'I-<class name 1>' cannot be followed by a word with 'I-<class name 2>'. We use these rules inherent to SciNER task definition in our prediction process.
+
+In step 3, the last step before testing the model's performance, we fine-tune the model on a combined set of manual and automated annotations for 5 epochs with a learning rate of $1\times10^{-4}$ and a batch size of 8.
+
+In step 4, we loop through steps 1-3 multiple times to improve our outcomes. For our final model, we perform this iteration 2 times. In \ref{sec:metrics} we show how this iterative auto-annotation and re-training of our model improves the performance on the test set.
+
+\subsection{Experiment Evaluation}\label{sec:metrics}
+We evaluate the two candidate models on a test set created from 6 papers as discussed in section \ref{sec:data_annotation}. As part of the statistical significance bootstrap test , we randomly draw a subset of 50 samples from the evaluation set (without replacement) for a total of 12 times. For each draw, we calculate the corresponding Accuracy and F1 score (precision, recall) from both the models. For each metric, we present the mean value and the obtained range in Table \ref{table:metrics_1}. Based on these results, we carry subsequent experiments with the \texttt{bert-large-cased} model.
+
+% Table \ref{table:metrics_1} below contains metrics computed on test set for models trained on manually annotated data alone on top of two different pre-trained models: \texttt{bert-large-cased} and \texttt{dslim/bert-large-NER}. The model trained on top of \texttt{bert-large-cased} performs slightly better than model trained on top of \texttt{dslim/bert-large-NER}. For this reason, we use \texttt{bert-large-cased} as pre-trained checkpoint for experiments going forward.
+% \begin{table}[h]
+% \begin{tabularx}{\columnwidth} { 
+%   | >{\centering\arraybackslash}X 
+%   | >{\centering\arraybackslash}X 
+%   | >{\centering\arraybackslash}X | }
+%  \hline
+%  \textbf{Checkpoint} & \textbf{Accuracy(\%)} & \textbf{F1} \\
+%  \hline
+%  dslim/bert-large-NER  & 94.2  & 0.533\\
+%  \hline
+%  bert-large-cased  & 94.2  & \textbf{0.559}\\
+% \hline
+% \end{tabularx}
+% \caption{Metrics for \texttt{bert-large-cased} and \texttt{dslim/bert-large-NER} pre-trained checkpoints}
+% \label{table:metrics_1}
+% \end{table}
+
+\begin{table}[h]
+\begin{tabularx}{\columnwidth} { 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X | }
+ \hline
+ \textbf{Metrics} & \textbf{dslim/bert-large-NER} & \textbf{bert-large-cased}\\
+ \hline
+  Mean Accuracy (\%) & 95.1  & \textbf{96.4}\\
+ \hline
+  Accuracy Range (\%) & 94.5 - 95.8  & \textbf{95.8 - 97.0}\\
+ \hline
+  Mean F1 & 0.576  & \textbf{0.741}\\ 
+ \hline
+  F1 Range (\%) & 0.526 - 0.624 & \textbf{0.696 - 0.787}\\
+ \hline
+\end{tabularx}
+\caption{Significance test for \texttt{bert-large-cased} and \texttt{dslim/bert-large-NER} over 12 slices of evaluation data}
+\label{table:metrics_1}
 \end{table}
 
-\subsection{Hyperlinks}
-
-Users of older versions of \LaTeX{} may encounter the following error during compilation: 
-\begin{quote}
-\tt\verb|\pdfendlink| ended up in different nesting level than \verb|\pdfstartlink|.
-\end{quote}
-This happens when pdf\LaTeX{} is used and a citation splits across a page boundary. The best way to fix this is to upgrade \LaTeX{} to 2018-12-01 or later.
-
-\subsection{Citations}
-
-\begin{table*}
-\centering
-\begin{tabular}{lll}
+Table \ref{table:metrics_2} below contains metrics computed on test set for three different \texttt{bert-large-cased} variants: model trained only on manually labeled data, model trained on combined manually and auto annotated data at the end of iteration 1 and model trained on combined manually and auto annotated data at the end of iteration 2. We can clearly see the improvement in metrics as we iteratively improve the quality of auto-annotated data.
+\begin{table}[h]
+\begin{tabularx}{\columnwidth} { 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X | }
+ \hline
+ \textbf{Iteration} & \textbf{Accuracy} & \textbf{F1} \\
+ \hline
+ Before iteration 1  & 94.2  & 0.559\\
+ \hline
+ After iteration 1  & 97.7  & 0.856\\
+ \hline
+ After iteration 2  & \textbf{99.7}  & \textbf{0.960}\\
 \hline
-\textbf{Output} & \textbf{natbib command} & \textbf{ACL only command}\\
-\hline
-\citep{Gusfield:97} & \verb|\citep| &  \\
-\citealp{Gusfield:97} & \verb|\citealp| & \\
-\citet{Gusfield:97} & \verb|\citet| &  \\
-  \citeyearpar{Gusfield:97} & \verb|\citeyearpar| &  \\
-  \citeposs{Gusfield:97}	&	& \verb|\citeposs|\\
-\hline
-\end{tabular}
-\caption{\label{citation-guide}
-Citation commands supported by the style file.
-The style is based on the natbib package and supports all natbib citation commands.
-It also supports commands defined in previous ACL style files for compatibility.
-}
-\end{table*}
+\end{tabularx}
+\caption{Metrics at different points in training process for \texttt{bert-large-cased}}
+\label{table:metrics_2}
+\end{table}
 
-Table~\ref{citation-guide} shows the syntax supported by the style files.
-We encourage you to use the natbib styles.
-You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
-You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
-You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=1\textwidth]{images/analysis.png}
+  \caption{Comparison of results before 1st iteration and after second iteration}
+  \label{fig:analysis}
+\end{figure*}
+\section{Analysis}\label{sec:analysis}
+The improvements in overall metrics is reflected the most in predictions for less common classes. Fig \ref{fig:analysis} that compares results generated on examples from the test dataset proves this point. The figure shows three inputs and corresponding word-level predicted labels from models before first iteration and at the end of second iteration. We can clearly see the improvements in predictions of less common classes such as TaskName, DatasetName and MethodName. The incorrect and correct labels are highlighted in red and blue colors respectively.
 
-A possessive citation can be made with the command \verb|\citeposs|.
-This is not a standard natbib command, so it is generally not compatible
-with other style files.
-
-\subsection{References}
-
-\nocite{Ando2005,andrew2007scalable,rasooli-tetrault-2015}
-
-The \LaTeX{} and Bib\TeX{} style files provided roughly follow the American Psychological Association format.
-If your own bib file is named \texttt{custom.bib}, then placing the following before any appendices in your \LaTeX{} file will generate the references section for you:
-\begin{quote}
-\begin{verbatim}
-\bibliography{custom}
-\end{verbatim}
-\end{quote}
-
-You can obtain the complete ACL Anthology as a Bib\TeX{} file from \url{https://aclweb.org/anthology/anthology.bib.gz}.
-To include both the Anthology and your own .bib file, use the following instead of the above.
-\begin{quote}
-\begin{verbatim}
-\bibliography{anthology,custom}
-\end{verbatim}
-\end{quote}
-
-Please see Section~\ref{sec:bibtex} for information on preparing Bib\TeX{} files.
-
-\subsection{Appendices}
-
-Use \verb|\appendix| before any appendix section to switch the section numbering over to letters. See Appendix~\ref{sec:appendix} for an example.
-
-\section{Results}
-\label{sec:bibtex}
-
-Unicode cannot be used in Bib\TeX{} entries, and some ways of typing special characters can disrupt Bib\TeX's alphabetization. The recommended way of typing special characters is shown in Table~\ref{tab:accents}.
-
-Please ensure that Bib\TeX{} records contain DOIs or URLs when possible, and for all the ACL materials that you reference.
-Use the \verb|doi| field for DOIs and the \verb|url| field for URLs.
-If a Bib\TeX{} entry has a URL or DOI field, the paper title in the references section will appear as a hyperlink to the paper, using the hyperref \LaTeX{} package.
-
-\section{Conclusion}
-
+\section{Future Work}
+There are a few ways to improve the SciNER model further. The first way is by using the large quantity of data in "unlabeled" category to pre-train the model using MLM objective. This allows us to leverage tens of thousands of papers that haven't been annotated either manually or using an auto-annotation process. The second is by replacing BERT with other more powerful encoders such as RoBERTa. The third is by annotating a wider set of papers manually rather than restricting the manual annotation to just 35 papers.
+\section{Conclusion}\label{sec:conclusion}
+In this work, we describe our approach to performing the SciNER task. Our iterative auto-annotation approach has applications beyond the NER task and has the potential to improve the performance of NLP tasks where getting access to labeled data is hard. 
 
 % Entries for the entire Anthology, followed by custom entries
-\bibliography{anthology,custom}
-
-\appendix
-
-\section{Example Appendix}
-\label{sec:appendix}
-
-This is an appendix.
+\bibliography{custom}
 
 \end{document}

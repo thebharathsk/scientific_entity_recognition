@@ -1,0 +1,33 @@
+\begin{thebibliography}{4}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[{Devlin et~al.(2019)Devlin, Chang, Lee, and
+  Toutanova}]{Devlin2019BERTPO}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019.
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock In \emph{North American Chapter of the Association for Computational
+  Linguistics}.
+
+\bibitem[{He et~al.(2020)He, Liu, Gao, and Chen}]{He2020DeBERTaDB}
+Pengcheng He, Xiaodong Liu, Jianfeng Gao, and Weizhu Chen. 2020.
+\newblock \href {https://api.semanticscholar.org/CorpusID:219531210} {Deberta:
+  Decoding-enhanced bert with disentangled attention}.
+\newblock \emph{ArXiv}, abs/2006.03654.
+
+\bibitem[{Liu et~al.(2019)Liu, Ott, Goyal, Du, Joshi, Chen, Levy, Lewis,
+  Zettlemoyer, and Stoyanov}]{Liu2019RoBERTaAR}
+Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer
+  Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019.
+\newblock \href {https://api.semanticscholar.org/CorpusID:198953378} {Roberta:
+  A robustly optimized bert pretraining approach}.
+\newblock \emph{ArXiv}, abs/1907.11692.
+
+\bibitem[{Tjong Kim~Sang and De~Meulder(2003)}]{connl2023}
+Erik~F. Tjong Kim~Sang and Fien De~Meulder. 2003.
+\newblock \href {https://aclanthology.org/W03-0419} {Introduction to the
+  {C}o{NLL}-2003 shared task: Language-independent named entity recognition}.
+\newblock In \emph{Proceedings of the Seventh Conference on Natural Language
+  Learning at {HLT}-{NAACL} 2003}, pages 142--147.
+
+\end{thebibliography}
